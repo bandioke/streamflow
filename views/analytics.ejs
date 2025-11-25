@@ -1,0 +1,543 @@
+<%- include('layout', { active: 'analytics' }) %>
+
+<div class="container-fluid px-4 py-4">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0">📊 Analytics Dashboard</h1>
+      <p class="text-muted mb-0">Monitor your streaming performance and metrics</p>
+    </div>
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-outline-primary active" data-period="7">7 Days</button>
+      <button type="button" class="btn btn-outline-primary" data-period="30">30 Days</button>
+      <button type="button" class="btn btn-outline-primary" data-period="90">90 Days</button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="flex-shrink-0">
+              <div class="bg-primary bg-opacity-10 text-primary rounded p-3">
+                <i class="bi bi-broadcast fs-4"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h6 class="text-muted mb-0">Total Streams</h6>
+              <h3 class="mb-0" id="total-streams">-</h3>
+            </div>
+          </div>
+          <small class="text-muted">Last <span id="period-text">7</span> days</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="flex-shrink-0">
+              <div class="bg-success bg-opacity-10 text-success rounded p-3">
+                <i class="bi bi-clock-history fs-4"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h6 class="text-muted mb-0">Total Duration</h6>
+              <h3 class="mb-0" id="total-duration">-</h3>
+            </div>
+          </div>
+          <small class="text-muted">Streaming time</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="flex-shrink-0">
+              <div class="bg-info bg-opacity-10 text-info rounded p-3">
+                <i class="bi bi-speedometer2 fs-4"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h6 class="text-muted mb-0">Avg Bitrate</h6>
+              <h3 class="mb-0" id="avg-bitrate">-</h3>
+            </div>
+          </div>
+          <small class="text-muted">Average quality</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-2">
+            <div class="flex-shrink-0">
+              <div class="bg-warning bg-opacity-10 text-warning rounded p-3">
+                <i class="bi bi-arrow-down-up fs-4"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h6 class="text-muted mb-0">Avg Bandwidth</h6>
+              <h3 class="mb-0" id="avg-bandwidth">-</h3>
+            </div>
+          </div>
+          <small class="text-muted">Network usage</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Network Monitor -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">🌐 Real-time Network Monitor</h5>
+            <span class="badge" id="network-quality-badge">Good</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <canvas id="networkChart" height="80"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">📡 Current Status</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="text-muted">Upload</small>
+              <strong id="current-upload">0.00 Mbps</strong>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-primary" id="upload-progress" role="progressbar" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="text-muted">Download</small>
+              <strong id="current-download">0.00 Mbps</strong>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-success" id="download-progress" role="progressbar" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="text-muted">Total Bandwidth</small>
+              <strong id="current-total">0.00 Mbps</strong>
+            </div>
+            <div class="progress" style="height: 8px;">
+              <div class="progress-bar bg-info" id="total-progress" role="progressbar" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <small class="text-muted">Recommended Bitrate</small>
+            <strong id="recommended-bitrate">- kbps</strong>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">Optimal Quality</small>
+            <strong id="optimal-quality">-</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bandwidth Usage Chart -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">📈 Bandwidth Usage History</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="bandwidthChart" height="60"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">⚡ Performance Metrics</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="text-center p-3 bg-light rounded">
+                <h4 class="mb-1" id="avg-dropped-frames">-</h4>
+                <small class="text-muted">Avg Dropped Frames</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-3 bg-light rounded">
+                <h4 class="mb-1" id="avg-encoding-lag">-</h4>
+                <small class="text-muted">Avg Encoding Lag (ms)</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-3 bg-light rounded">
+                <h4 class="mb-1" id="total-errors">-</h4>
+                <small class="text-muted">Total Errors</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-3 bg-light rounded">
+                <canvas id="qualityChart" height="100"></canvas>
+                <small class="text-muted mt-2 d-block">Network Quality Distribution</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">🏆 Top Streams by Duration</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush" id="top-streams-list">
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let currentPeriod = 7;
+let networkChart, bandwidthChart, qualityChart;
+let networkUpdateInterval;
+
+// Initialize charts
+function initCharts() {
+  // Network Chart (Real-time)
+  const networkCtx = document.getElementById('networkChart').getContext('2d');
+  networkChart = new Chart(networkCtx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Upload (Mbps)',
+          data: [],
+          borderColor: '#0d6efd',
+          backgroundColor: 'rgba(13, 110, 253, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Download (Mbps)',
+          data: [],
+          borderColor: '#198754',
+          backgroundColor: 'rgba(25, 135, 84, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Mbps'
+          }
+        },
+        x: {
+          display: false
+        }
+      }
+    }
+  });
+
+  // Bandwidth History Chart
+  const bandwidthCtx = document.getElementById('bandwidthChart').getContext('2d');
+  bandwidthChart = new Chart(bandwidthCtx, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Average Bandwidth (Mbps)',
+          data: [],
+          backgroundColor: 'rgba(13, 110, 253, 0.5)',
+          borderColor: '#0d6efd',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Mbps'
+          }
+        }
+      }
+    }
+  });
+
+  // Quality Distribution Chart
+  const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+  qualityChart = new Chart(qualityCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Good', 'Fair', 'Poor'],
+      datasets: [{
+        data: [0, 0, 0],
+        backgroundColor: [
+          'rgba(25, 135, 84, 0.8)',
+          'rgba(255, 193, 7, 0.8)',
+          'rgba(220, 53, 69, 0.8)'
+        ]
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+}
+
+// Load dashboard data
+async function loadDashboard() {
+  try {
+    const response = await fetch(`/api/analytics/dashboard?days=${currentPeriod}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      updateSummaryCards(result.data.summary);
+      updateBandwidthChart(result.data.bandwidth);
+      updatePerformanceMetrics(result.data.performance);
+      updateTopStreams(result.data.topStreams);
+    }
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+  }
+}
+
+// Update summary cards
+function updateSummaryCards(summary) {
+  document.getElementById('total-streams').textContent = summary.total_streams || 0;
+  
+  const hours = Math.floor((summary.total_duration_seconds || 0) / 3600);
+  const minutes = Math.floor(((summary.total_duration_seconds || 0) % 3600) / 60);
+  document.getElementById('total-duration').textContent = `${hours}h ${minutes}m`;
+  
+  document.getElementById('avg-bitrate').textContent = 
+    summary.avg_bitrate ? `${Math.round(summary.avg_bitrate)} kbps` : '-';
+  
+  document.getElementById('avg-bandwidth').textContent = 
+    summary.avg_bandwidth ? `${summary.avg_bandwidth.toFixed(2)} Mbps` : '-';
+}
+
+// Update bandwidth chart
+function updateBandwidthChart(data) {
+  if (!data || data.length === 0) return;
+  
+  const labels = data.map(d => new Date(d.date).toLocaleDateString()).reverse();
+  const values = data.map(d => d.avg_total || 0).reverse();
+  
+  bandwidthChart.data.labels = labels;
+  bandwidthChart.data.datasets[0].data = values;
+  bandwidthChart.update();
+}
+
+// Update performance metrics
+function updatePerformanceMetrics(metrics) {
+  document.getElementById('avg-dropped-frames').textContent = 
+    metrics.avg_dropped_frames ? Math.round(metrics.avg_dropped_frames) : 0;
+  
+  document.getElementById('avg-encoding-lag').textContent = 
+    metrics.avg_encoding_lag ? Math.round(metrics.avg_encoding_lag) : 0;
+  
+  document.getElementById('total-errors').textContent = metrics.total_errors || 0;
+  
+  // Update quality chart
+  qualityChart.data.datasets[0].data = [
+    metrics.good_quality_count || 0,
+    metrics.fair_quality_count || 0,
+    metrics.poor_quality_count || 0
+  ];
+  qualityChart.update();
+}
+
+// Update top streams
+function updateTopStreams(streams) {
+  const list = document.getElementById('top-streams-list');
+  
+  if (!streams || streams.length === 0) {
+    list.innerHTML = '<div class="text-center py-4 text-muted">No streams found</div>';
+    return;
+  }
+  
+  list.innerHTML = streams.map((stream, index) => {
+    const hours = Math.floor(stream.duration_seconds / 3600);
+    const minutes = Math.floor((stream.duration_seconds % 3600) / 60);
+    
+    return `
+      <div class="list-group-item border-0">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-1">${index + 1}. ${stream.title || 'Untitled'}</h6>
+            <small class="text-muted">${stream.platform || 'Unknown'} • ${stream.resolution || '-'}</small>
+          </div>
+          <div class="text-end">
+            <strong>${hours}h ${minutes}m</strong>
+            <br>
+            <small class="text-muted">${stream.bitrate_avg ? Math.round(stream.bitrate_avg) + ' kbps' : '-'}</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Update real-time network metrics
+async function updateNetworkMetrics() {
+  try {
+    const [metricsRes, bitrateRes] = await Promise.all([
+      fetch('/api/analytics/network/realtime'),
+      fetch('/api/analytics/bitrate/status')
+    ]);
+    
+    const metricsResult = await metricsRes.json();
+    const bitrateResult = await bitrateRes.json();
+    
+    if (metricsResult.success) {
+      const metrics = metricsResult.data;
+      
+      // Update current values
+      document.getElementById('current-upload').textContent = 
+        `${metrics.bandwidth.upload.toFixed(2)} Mbps`;
+      document.getElementById('current-download').textContent = 
+        `${metrics.bandwidth.download.toFixed(2)} Mbps`;
+      document.getElementById('current-total').textContent = 
+        `${metrics.bandwidth.total.toFixed(2)} Mbps`;
+      
+      // Update progress bars
+      const maxBandwidth = 100; // Mbps
+      document.getElementById('upload-progress').style.width = 
+        `${Math.min(100, (metrics.bandwidth.upload / maxBandwidth) * 100)}%`;
+      document.getElementById('download-progress').style.width = 
+        `${Math.min(100, (metrics.bandwidth.download / maxBandwidth) * 100)}%`;
+      document.getElementById('total-progress').style.width = 
+        `${Math.min(100, (metrics.bandwidth.total / maxBandwidth) * 100)}%`;
+      
+      // Update quality badge
+      const badge = document.getElementById('network-quality-badge');
+      badge.textContent = metrics.connectionQuality.charAt(0).toUpperCase() + 
+                         metrics.connectionQuality.slice(1);
+      badge.className = 'badge bg-' + 
+        (metrics.connectionQuality === 'good' ? 'success' : 
+         metrics.connectionQuality === 'fair' ? 'warning' : 'danger');
+      
+      // Update network chart
+      const now = new Date().toLocaleTimeString();
+      if (networkChart.data.labels.length > 30) {
+        networkChart.data.labels.shift();
+        networkChart.data.datasets[0].data.shift();
+        networkChart.data.datasets[1].data.shift();
+      }
+      networkChart.data.labels.push(now);
+      networkChart.data.datasets[0].data.push(metrics.bandwidth.upload);
+      networkChart.data.datasets[1].data.push(metrics.bandwidth.download);
+      networkChart.update('none');
+    }
+    
+    if (bitrateResult.success) {
+      const bitrate = bitrateResult.data;
+      document.getElementById('recommended-bitrate').textContent = 
+        `${bitrate.recommendedBitrate.bitrate} kbps`;
+      document.getElementById('optimal-quality').textContent = 
+        bitrate.recommendedBitrate.quality.charAt(0).toUpperCase() + 
+        bitrate.recommendedBitrate.quality.slice(1);
+    }
+  } catch (error) {
+    console.error('Error updating network metrics:', error);
+  }
+}
+
+// Period selector
+document.querySelectorAll('[data-period]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentPeriod = parseInt(this.dataset.period);
+    document.getElementById('period-text').textContent = currentPeriod;
+    loadDashboard();
+  });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  initCharts();
+  loadDashboard();
+  updateNetworkMetrics();
+  
+  // Update network metrics every 5 seconds
+  networkUpdateInterval = setInterval(updateNetworkMetrics, 5000);
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  if (networkUpdateInterval) {
+    clearInterval(networkUpdateInterval);
+  }
+});
+</script>
+
+

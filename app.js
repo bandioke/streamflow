@@ -2147,6 +2147,154 @@ app.put('/api/playlists/:id/videos/reorder', isAuthenticated, [
   }
 });
 
+// ============================================
+// ANALYTICS ROUTES
+// ============================================
+const analyticsService = require('./services/analyticsService');
+const networkMonitor = require('./services/networkMonitor');
+const adaptiveBitrate = require('./services/adaptiveBitrate');
+
+// Get analytics dashboard
+app.get('/analytics', isAuthenticated, async (req, res) => {
+  try {
+    res.render('analytics', {
+      title: 'Analytics Dashboard'
+    });
+  } catch (error) {
+    console.error('Error rendering analytics:', error);
+    res.status(500).render('error', {
+      title: 'Error',
+      error: 'Failed to load analytics dashboard'
+    });
+  }
+});
+
+// Get dashboard summary
+app.get('/api/analytics/dashboard', isAuthenticated, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const summary = await analyticsService.getDashboardSummary(req.session.userId, days);
+    
+    res.json({
+      success: true,
+      data: summary
+    });
+  } catch (error) {
+    console.error('Error getting dashboard summary:', error);
+    res.status(500).json({ success: false, error: 'Failed to get dashboard summary' });
+  }
+});
+
+// Get stream analytics
+app.get('/api/analytics/stream/:streamId', isAuthenticated, async (req, res) => {
+  try {
+    const analytics = await analyticsService.getStreamAnalytics(req.params.streamId);
+    
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Error getting stream analytics:', error);
+    res.status(500).json({ success: false, error: 'Failed to get stream analytics' });
+  }
+});
+
+// Get bandwidth statistics
+app.get('/api/analytics/bandwidth', isAuthenticated, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const stats = await analyticsService.getBandwidthStats(days, req.session.userId);
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting bandwidth stats:', error);
+    res.status(500).json({ success: false, error: 'Failed to get bandwidth statistics' });
+  }
+});
+
+// Get performance metrics
+app.get('/api/analytics/performance', isAuthenticated, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const streamId = req.query.streamId || null;
+    const metrics = await analyticsService.getPerformanceMetrics(streamId, days);
+    
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    console.error('Error getting performance metrics:', error);
+    res.status(500).json({ success: false, error: 'Failed to get performance metrics' });
+  }
+});
+
+// Get real-time network metrics
+app.get('/api/analytics/network/realtime', isAuthenticated, (req, res) => {
+  try {
+    const metrics = networkMonitor.getMetrics();
+    
+    res.json({
+      success: true,
+      data: metrics
+    });
+  } catch (error) {
+    console.error('Error getting network metrics:', error);
+    res.status(500).json({ success: false, error: 'Failed to get network metrics' });
+  }
+});
+
+// Get network history
+app.get('/api/analytics/network/history', isAuthenticated, (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 50;
+    const history = networkMonitor.getHistory(limit);
+    
+    res.json({
+      success: true,
+      data: history
+    });
+  } catch (error) {
+    console.error('Error getting network history:', error);
+    res.status(500).json({ success: false, error: 'Failed to get network history' });
+  }
+});
+
+// Get adaptive bitrate status
+app.get('/api/analytics/bitrate/status', isAuthenticated, (req, res) => {
+  try {
+    const status = adaptiveBitrate.getStatus();
+    
+    res.json({
+      success: true,
+      data: status
+    });
+  } catch (error) {
+    console.error('Error getting bitrate status:', error);
+    res.status(500).json({ success: false, error: 'Failed to get bitrate status' });
+  }
+});
+
+// Get system analytics
+app.get('/api/analytics/system', isAuthenticated, async (req, res) => {
+  try {
+    const hours = parseInt(req.query.hours) || 24;
+    const analytics = await analyticsService.getSystemAnalytics(hours);
+    
+    res.json({
+      success: true,
+      data: analytics
+    });
+  } catch (error) {
+    console.error('Error getting system analytics:', error);
+    res.status(500).json({ success: false, error: 'Failed to get system analytics' });
+  }
+});
+
 app.get('/api/server-time', (req, res) => {
   const now = new Date();
   const day = String(now.getDate()).padStart(2, '0');
