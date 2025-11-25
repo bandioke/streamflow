@@ -30,7 +30,7 @@ StreamFlow adalah aplikasi live streaming yang memungkinkan kamu melakukan live 
 Untuk instalasi otomatis, jalankan perintah berikut:
 
 ```bash
-curl -o install.sh https://raw.githubusercontent.com/bandioke/streamflowupdate/main/install.sh && chmod +x install.sh && ./install.sh
+curl -o install.sh https://raw.githubusercontent.com/bandioke/streamflow/main/install.sh && chmod +x install.sh && ./install.sh
 ```
 
 ## 🔧 Manual Installation
@@ -73,12 +73,12 @@ sudo apt install git -y
 
 Clone repository:
 ```bash
-git clone https://github.com/bandioke/streamflowupdate
+git clone https://github.com/bandioke/streamflow
 ```
 
 Masuk ke direktori project:
 ```bash
-cd streamflowupdate
+cd streamflow
 ```
 
 Install Paket Node.JS:
@@ -192,7 +192,7 @@ Contoh: `http://88.12.34.56:7575`
 Jika lupa password atau perlu reset akun:
 
 ```bash
-cd streamflowupdate && node reset-password.js
+cd streamflow && node reset-password.js
 ```
 
 ## ⏰ Pengaturan Timezone Server
@@ -292,11 +292,11 @@ pm2 restart streamflow
 
 ## 💫 Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=bandioke/streamflowupdate)](https://github.com/bandioke/streamflowupdate/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=bandioke/streamflow)](https://github.com/bandioke/streamflow/graphs/contributors)
 
 ## 📄 License
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/bandioke/streamflowupdate/blob/main/LICENSE)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/bandioke/streamflow/blob/main/LICENSE)
 
 ---
 
