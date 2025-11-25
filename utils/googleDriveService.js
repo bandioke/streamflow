@@ -20,8 +20,56 @@ function extractFileId(driveUrl) {
   throw new Error('Invalid Google Drive URL format');
 }
 
+async function getFileName(fileId) {
+  try {
+    const metadataUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?fields=name&key=AIzaSyDummyKey`;
+    
+    try {
+      const response = await axios.get(metadataUrl, { timeout: 10000 });
+      if (response.data && response.data.name) {
+        return response.data.name;
+      }
+    } catch (error) {
+      console.log('Could not fetch filename from API, will use fallback method');
+    }
+    
+    const pageUrl = `https://drive.google.com/file/d/${fileId}/view`;
+    try {
+      const response = await axios.get(pageUrl, {
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      
+      const html = response.data;
+      const titleMatch = html.match(/<title>([^<]+)<\/title>/);
+      if (titleMatch && titleMatch[1]) {
+        let title = titleMatch[1].replace(' - Google Drive', '').trim();
+        if (title && title !== 'Google Drive') {
+          return title;
+        }
+      }
+      
+      const ogTitleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
+      if (ogTitleMatch && ogTitleMatch[1]) {
+        return ogTitleMatch[1].trim();
+      }
+    } catch (error) {
+      console.log('Could not fetch filename from page, using generic name');
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting filename:', error.message);
+    return null;
+  }
+}
+
 async function downloadFile(fileId, progressCallback = null) {
   try {
+    let actualFileName = await getFileName(fileId);
+    
     const tempFilename = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const tempPath = path.join(paths.videos, tempFilename);
     
@@ -116,7 +164,7 @@ async function downloadFile(fileId, progressCallback = null) {
           lastProgress = progress;
           progressCallback({
             id: fileId,
-            filename: 'Google Drive File',
+            filename: actualFileName || 'Google Drive File',
             progress: progress
           });
         }
@@ -192,7 +240,18 @@ async function downloadFile(fileId, progressCallback = null) {
             return;
           }
 
-          const originalFilename = `gdrive_${fileId}.mp4`;
+          let originalFilename;
+          if (actualFileName) {
+            const ext = path.extname(actualFileName);
+            if (!ext || !['.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.webm'].includes(ext.toLowerCase())) {
+              originalFilename = actualFileName + '.mp4';
+            } else {
+              originalFilename = actualFileName;
+            }
+          } else {
+            originalFilename = `gdrive_${fileId}.mp4`;
+          }
+          
           const uniqueFilename = getUniqueFilename(originalFilename);
           const finalPath = path.join(paths.videos, uniqueFilename);
           
@@ -259,5 +318,6 @@ async function downloadFile(fileId, progressCallback = null) {
 
 module.exports = {
   extractFileId,
-  downloadFile
+  downloadFile,
+  getFileName
 };
